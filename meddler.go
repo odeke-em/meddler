@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
 )
@@ -17,6 +18,29 @@ type DownloadItem struct {
 type UriInsert struct {
 	UriList []string
 	Source  string
+}
+
+type Payload struct {
+	URI         string `form:"uri" binding:"required"`
+	PublicKey   string `form:"pubkey" binding:"-"`
+	Signature   string `form:"signature" binding:"-"`
+	Payload     string `form:"payload" binding:"-"`
+	RequestTime int64  `form:"requesttime" binding:"required"`
+}
+
+func (pl *Payload) RawTextForSigning() string {
+	return fmt.Sprintf("%q%q%q%q", pl.URI, pl.RequestTime, pl.Payload, pl.PublicKey)
+}
+
+func (pl *Payload) ToUrlValues(extras ...map[string]interface{}) url.Values {
+	uv := url.Values{}
+	uv.Set("requesttime", fmt.Sprintf("%v", pl.RequestTime))
+	uv.Set("payload", pl.Payload)
+	uv.Set("pubkey", pl.PublicKey)
+	uv.Set("signature", pl.Signature)
+	uv.Set("uri", pl.URI)
+
+	return uv
 }
 
 func headerShallowCopy(from, to http.Header) {
