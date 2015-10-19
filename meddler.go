@@ -26,19 +26,21 @@ type Payload struct {
 	Signature   string `form:"signature" binding:"-"`
 	Payload     string `form:"payload" binding:"-"`
 	RequestTime int64  `form:"requesttime" binding:"required"`
+	ExpiryTime  int64  `form:"expirytime" binding:"required"`
 }
 
 func (pl *Payload) RawTextForSigning() string {
-	return fmt.Sprintf("%q%q%q%q", pl.URI, pl.RequestTime, pl.Payload, pl.PublicKey)
+	return fmt.Sprintf("%q%q%q%q%q", pl.URI, pl.RequestTime, pl.Payload, pl.PublicKey, pl.ExpiryTime)
 }
 
 func (pl *Payload) ToUrlValues(extras ...map[string]interface{}) url.Values {
 	uv := url.Values{}
-	uv.Set("requesttime", fmt.Sprintf("%v", pl.RequestTime))
 	uv.Set("payload", pl.Payload)
 	uv.Set("pubkey", pl.PublicKey)
 	uv.Set("signature", pl.Signature)
 	uv.Set("uri", pl.URI)
+	uv.Set("requesttime", fmt.Sprintf("%v", pl.RequestTime))
+	uv.Set("expirytime", fmt.Sprintf("%v", pl.ExpiryTime))
 
 	return uv
 }
